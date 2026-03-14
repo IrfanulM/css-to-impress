@@ -138,12 +138,20 @@ export class RoomManager {
   handleDisconnect(socketId) {
     const roomId = this.playerRooms.get(socketId);
     if (!roomId) return;
-    
+
     const room = this.rooms.get(roomId);
     if (room) {
+      const wasTwoPlayerGame = room.players.length === 2 && (room.state === 'PLAYING' || room.state === 'VOTING');
       room.players = room.players.filter(p => p.id !== socketId);
+
       if (room.players.length === 0) {
         this.rooms.delete(roomId);
+      } else if (room.players.length === 1 && wasTwoPlayerGame) {
+        room.state = 'RESULTS';
+        room.players[0].score = 1;
+        room.forfeitWin = true;
+        this.io.to(roomId).emit('resultsCalculated');
+        this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
       } else {
         if (room.host === socketId) {
           room.host = room.players[0].id; // Reassign host
@@ -175,7 +183,8 @@ export class RoomManager {
         css: room.state === 'PLAYING' ? null : p.css
       })),
       endTime: room.endTime,
-      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex] : null
+      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex] : null,
+      forfeitWin: room.forfeitWin || false
     };
   }
 }

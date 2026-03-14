@@ -22,6 +22,11 @@ export function Results({ room }: { room: any }) {
           <div>
             <h1 className="title-linear">Final Results</h1>
             <p className="subtitle" style={{ margin: '8px 0 0 0' }}>Room {room.id} Rankings</p>
+            {room.forfeitWin && (
+              <p className="subtitle" style={{ margin: '12px 0 0 0', fontWeight: 600, color: 'var(--primary)' }}>
+                Winner by forfeit — opponent left the game.
+              </p>
+            )}
           </div>
           <button onClick={playAgain} className="btn-primary" style={{ padding: '14px 32px' }}>
             Play Again <ArrowRight size={20} />
