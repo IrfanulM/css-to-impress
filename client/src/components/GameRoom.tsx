@@ -144,27 +144,29 @@ export function GameRoom({ room }: { room: any }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: 'var(--line-thickness) solid var(--border-color)', background: '#FAFAFA' }}>
           
           {/* Editor Header / Tabs */}
-          <div style={{ display: 'flex', borderBottom: 'var(--line-thickness) solid var(--border-color)', background: 'white' }}>
+          <div style={{ display: 'flex', background: 'white', height: '48px' }}>
             <button 
               className="no-swoop"
               onClick={() => setActiveTab('css')}
-              style={{ flex: 1, padding: '12px 16px', border: 'none', background: 'transparent', color: activeTab === 'css' ? 'var(--text-main)' : 'var(--text-muted)', borderRadius: 0, fontFamily: "'Jost', sans-serif", fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', borderBottom: activeTab === 'css' ? '2px solid var(--secondary)' : '2px solid transparent', textAlign: 'left', justifyContent: 'flex-start' }}
+              style={{ flex: 1, padding: '0 16px', border: 'none', height: '100%', background: 'transparent', color: activeTab === 'css' ? 'var(--text-main)' : 'var(--text-muted)', borderRadius: 0, fontFamily: "'Jost', sans-serif", fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', textAlign: 'left', justifyContent: 'flex-start', position: 'relative' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '8px', height: '8px', background: 'var(--secondary)', borderRadius: '50%', opacity: activeTab === 'css' ? 1 : 0 }}></div>
                 styles.css
               </div>
+              {activeTab === 'css' && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'var(--secondary)' }}></div>}
             </button>
             <div style={{ width: 'var(--line-thickness)', background: 'var(--border-color)' }}></div>
             <button 
               className="no-swoop"
               onClick={() => setActiveTab('html')}
-              style={{ flex: 1, padding: '12px 16px', border: 'none', background: 'transparent', color: activeTab === 'html' ? 'var(--text-main)' : 'var(--text-muted)', borderRadius: 0, fontFamily: "'Jost', sans-serif", fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', borderBottom: activeTab === 'html' ? '2px solid var(--primary)' : '2px solid transparent', textAlign: 'left', justifyContent: 'flex-start' }}
+              style={{ flex: 1, padding: '0 16px', border: 'none', height: '100%', background: 'transparent', color: activeTab === 'html' ? 'var(--text-main)' : 'var(--text-muted)', borderRadius: 0, fontFamily: "'Jost', sans-serif", fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', textAlign: 'left', justifyContent: 'flex-start', position: 'relative' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '8px', height: '8px', background: 'var(--primary)', borderRadius: '50%', opacity: activeTab === 'html' ? 1 : 0 }}></div>
                 index.html
               </div>
+              {activeTab === 'html' && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'var(--primary)' }}></div>}
             </button>
           </div>
 
@@ -235,7 +237,7 @@ export function GameRoom({ room }: { room: any }) {
 
         {/* Live Preview Pane */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white' }}>
-          <div style={{ padding: '12px 24px', background: 'white', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', borderBottom: 'var(--line-thickness) solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ height: '48px', padding: '0 24px', background: 'white', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', borderBottom: 'var(--line-thickness) solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '8px', height: '8px', background: 'var(--accent)', borderRadius: '50%' }}></div>
             Live Preview
           </div>
