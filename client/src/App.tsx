@@ -87,6 +87,40 @@ function GameController() {
     return () => clearInterval(interval);
   }, [disconnectedInfo]);
 
+  // Tab/refresh close: show "Are you sure?" and if they leave, mark as explicit leave so server skips grace period
+  const isActiveGame = room?.state === 'PLAYING' || room?.state === 'VOTING';
+  useEffect(() => {
+    if (!isActiveGame) return;
+
+    const apiBase = import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : 'http://localhost:3001');
+    const leaveUrl = `${apiBase.replace(/\/$/, '')}/api/leave-room`;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    const handleUnload = () => {
+      try {
+        const playerId = localStorage.getItem('cti_lastPlayerId');
+        if (playerId) {
+          const payload = JSON.stringify({ socketId: playerId });
+          navigator.sendBeacon(leaveUrl, new Blob([payload], { type: 'application/json' }));
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [isActiveGame]);
+
   let content: React.ReactNode;
   if (!room) {
     content = roomId ? <Lobby defaultRoomId={roomId} /> : <Lobby />;

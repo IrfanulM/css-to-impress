@@ -6,10 +6,20 @@ import { RoomManager } from './RoomManager.js';
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 // Health check for Uptime Robot
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
+});
+
+// Tab-close / refresh: client sends beacon so next disconnect is treated as explicit leave (no grace period)
+app.post('/api/leave-room', (req, res) => {
+  const { socketId } = req.body || {};
+  if (socketId) {
+    roomManager.markExplicitLeave(socketId);
+  }
+  res.status(204).end();
 });
 
 const server = createServer(app);
