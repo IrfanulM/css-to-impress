@@ -38,6 +38,10 @@ io.on('connection', (socket) => {
     roomManager.joinRoom(socket, roomId, playerName);
   });
 
+  socket.on('reconnectRoom', ({ roomId, previousId }) => {
+    roomManager.reconnectRoom(socket, roomId, previousId);
+  });
+
   socket.on('startGame', ({ roomId }) => {
     roomManager.startGame(roomId, socket.id);
   });

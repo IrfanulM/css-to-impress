@@ -21,6 +21,20 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     newSocket.on('connect', () => {
       setIsConnected(true);
       console.log('Connected to socket server');
+
+      // Attempt to reconnect into an in-progress game if we have prior identity
+      try {
+        const storedRoomId = localStorage.getItem('cti_lastRoomId');
+        const storedPlayerId = localStorage.getItem('cti_lastPlayerId');
+        if (storedRoomId && storedPlayerId) {
+          newSocket.emit('reconnectRoom', {
+            roomId: storedRoomId,
+            previousId: storedPlayerId,
+          });
+        }
+      } catch {
+        // localStorage may be unavailable; ignore
+      }
     });
 
     newSocket.on('disconnect', () => {

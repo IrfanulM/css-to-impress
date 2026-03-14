@@ -12,6 +12,8 @@ function GameController() {
   const { socket, isConnected } = useSocket();
   const [room, setRoom] = useState<any>(null);
   const [hostReassignToast, setHostReassignToast] = useState<string | null>(null);
+  const [disconnectedInfo, setDisconnectedInfo] = useState<{ playerName: string; expiresAt: number } | null>(null);
+  const [disconnectTimeLeft, setDisconnectTimeLeft] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +22,14 @@ function GameController() {
     const handleRoomUpdated = (updatedRoom: any) => {
       console.log('Room updated:', updatedRoom);
       setRoom(updatedRoom);
+      if (socket && typeof updatedRoom.id === 'string' && socket.id) {
+        try {
+          localStorage.setItem('cti_lastRoomId', updatedRoom.id);
+          localStorage.setItem('cti_lastPlayerId', socket.id);
+        } catch {
+          // localStorage may be unavailable; ignore
+        }
+      }
       if (updatedRoom.id && updatedRoom.id !== roomId) {
         navigate(`/room/${updatedRoom.id}`);
       }
@@ -31,9 +41,21 @@ function GameController() {
       setTimeout(() => setHostReassignToast(null), 3000);
     };
 
+    const handlePlayerTemporarilyDisconnected = ({ playerName, expiresAt }: { playerName: string; expiresAt: number }) => {
+      setDisconnectedInfo({ playerName, expiresAt });
+      setDisconnectTimeLeft(Math.max(0, expiresAt - Date.now()));
+    };
+
+    const handlePlayerReconnected = () => {
+      setDisconnectedInfo(null);
+      setDisconnectTimeLeft(0);
+    };
+
     socket.on('roomUpdated', handleRoomUpdated);
     socket.on('errorMsg', (msg: string) => alert(msg));
     socket.on('hostReassigned', handleHostReassigned);
+    socket.on('playerTemporarilyDisconnected', handlePlayerTemporarilyDisconnected);
+    socket.on('playerReconnected', handlePlayerReconnected);
 
     // Auto-navigate to home if lobby destroyed while inside
     socket.on('disconnect', () => {
@@ -45,9 +67,24 @@ function GameController() {
       socket.off('roomUpdated', handleRoomUpdated);
       socket.off('errorMsg');
       socket.off('hostReassigned', handleHostReassigned);
+      socket.off('playerTemporarilyDisconnected', handlePlayerTemporarilyDisconnected);
+      socket.off('playerReconnected', handlePlayerReconnected);
       socket.off('disconnect');
     };
   }, [socket, isConnected, navigate, roomId]);
+
+  // Drive countdown for the disconnect overlay
+  useEffect(() => {
+    if (!disconnectedInfo) return;
+
+    const update = () => {
+      setDisconnectTimeLeft(Math.max(0, disconnectedInfo.expiresAt - Date.now()));
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [disconnectedInfo]);
 
   let content: React.ReactNode;
   if (!room) {
@@ -77,6 +114,51 @@ function GameController() {
   return (
     <>
       {content}
+      {room && disconnectedInfo && (room.state === 'PLAYING' || room.state === 'VOTING') && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 950,
+          }}
+        >
+          <div
+            style={{
+              background: '#000',
+              color: '#fff',
+              padding: '32px 40px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              maxWidth: '480px',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+            }}
+          >
+            <h2 className="title-small" style={{ marginBottom: '12px', fontSize: '1.6rem' }}>
+              Waiting for {disconnectedInfo.playerName} to reconnect
+            </h2>
+            <p style={{ marginBottom: '24px', fontSize: '0.95rem', opacity: 0.85 }}>
+              The game is paused. If they don't return in{' '}
+              {Math.max(0, Math.ceil(disconnectTimeLeft / 1000))} seconds,
+              {room.players.length === 2
+                ? ' the remaining player will win by forfeit.'
+                : ' the game will continue without them.'}
+            </p>
+            <div
+              style={{
+                fontSize: '2.4rem',
+                fontWeight: 800,
+                letterSpacing: '2px',
+              }}
+            >
+              {String(Math.floor(disconnectTimeLeft / 1000)).padStart(2, '0')}
+            </div>
+          </div>
+        </div>
+      )}
       {hostReassignToast && (
         <div
           className="title-small"
