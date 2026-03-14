@@ -210,28 +210,39 @@ export class RoomManager {
   handleDisconnect(socketId) {
     const roomId = this.playerRooms.get(socketId);
     if (!roomId) return;
-
+    
+    // Mark as inactive by removing from tracking map
+    this.playerRooms.delete(socketId);
+    
     const room = this.rooms.get(roomId);
     if (room) {
-      const wasTwoPlayerGame = room.players.length === 2 && (room.state === 'PLAYING' || room.state === 'VOTING');
-      room.players = room.players.filter(p => p.id !== socketId);
+      // 1. Forfeit Logic: check if this was a 2-player game in progress
+      const wasTwoPlayerGame = room.players.length === 2 && 
+        (room.state === 'PLAYING' || room.state === 'VOTING' || room.state === 'TEMPLATE_VOTING');
 
-      if (room.players.length === 0) {
+      // 2. Player removal policy: 
+      // Do NOT remove players if we are in RESULTS state (so names stay on the leaderboard).
+      if (room.state !== 'RESULTS') {
+        room.players = room.players.filter(p => p.id !== socketId);
+      }
+      
+      // Calculate how many people are actually still connected to the room
+      const activePlayers = room.players.filter(p => this.playerRooms.has(p.id));
+      
+      if (activePlayers.length === 0) {
+        // Garbage collection: no one is left, delete room
         this.rooms.delete(roomId);
       } else if (room.players.length === 1 && wasTwoPlayerGame) {
+        // Forfeit Win for the survivor
         room.state = 'RESULTS';
         room.players[0].score = 1;
         room.forfeitWin = true;
         this.io.to(roomId).emit('resultsCalculated');
         this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
       } else {
-        // 3+ player game: reassign host when host left (random if 2+ remaining)
-        if (room.host === socketId) {
-          if (room.players.length >= 2) {
-            room.host = room.players[Math.floor(Math.random() * room.players.length)].id;
-          } else {
-            room.host = room.players[0].id;
-          }
+        // Standard reassignment: if host left, pick a new host from active players
+        if (room.host === socketId && activePlayers.length > 0) {
+          room.host = activePlayers[0].id;
           const newHost = room.players.find(p => p.id === room.host);
           if (newHost) {
             this.io.to(roomId).emit('hostReassigned', { newHostId: room.host, newHostName: newHost.name });
@@ -263,7 +274,14 @@ export class RoomManager {
         css: room.state === 'PLAYING' ? null : p.css
       })),
       endTime: room.endTime,
-      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex] : null,
+      htmlTemplate: (room.state !== 'LOBBY' && room.state !== 'TEMPLATE_VOTING') ? htmlPrompts[room.htmlIndex].html : null,
+      promptName: (room.state !== 'LOBBY' && room.state !== 'TEMPLATE_VOTING') ? htmlPrompts[room.htmlIndex].name : null,
+      templateOptions: room.templateOptions ? room.templateOptions.map(opt => ({
+          index: opt.index,
+          name: opt.name,
+          voteCount: opt.votes.length,
+          votes: opt.votes // array of socket IDs who voted for this
+      })) : null,
       forfeitWin: room.forfeitWin || false
     };
   }

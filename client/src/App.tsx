@@ -57,6 +57,9 @@ function GameController() {
       case 'LOBBY':
         content = <Lobby room={room} />;
         break;
+      case 'TEMPLATE_VOTING':
+        content = <TemplateSelection room={room} />;
+        break;
       case 'PLAYING':
         content = <GameRoom room={room} />;
         break;
