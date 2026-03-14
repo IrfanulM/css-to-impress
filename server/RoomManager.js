@@ -59,7 +59,8 @@ export class RoomManager {
 
     this.io.to(roomId).emit('gameStarted', {
       endTime: room.endTime,
-      html: htmlPrompt
+      html: htmlPrompt.html,
+      promptName: htmlPrompt.name
     });
     this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
 
@@ -175,7 +176,8 @@ export class RoomManager {
         css: room.state === 'PLAYING' ? null : p.css
       })),
       endTime: room.endTime,
-      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex] : null
+      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex].html : null,
+      promptName: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex].name : null
     };
   }
 }
