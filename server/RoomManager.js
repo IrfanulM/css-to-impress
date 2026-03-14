@@ -210,22 +210,32 @@ export class RoomManager {
   handleDisconnect(socketId) {
     const roomId = this.playerRooms.get(socketId);
     if (!roomId) return;
-    
-    this.playerRooms.delete(socketId);
-    
+
     const room = this.rooms.get(roomId);
     if (room) {
-      if (room.state !== 'RESULTS') {
-        room.players = room.players.filter(p => p.id !== socketId);
-      }
-      
-      const activePlayers = room.players.filter(p => this.playerRooms.has(p.id));
-      
-      if (activePlayers.length === 0) {
+      const wasTwoPlayerGame = room.players.length === 2 && (room.state === 'PLAYING' || room.state === 'VOTING');
+      room.players = room.players.filter(p => p.id !== socketId);
+
+      if (room.players.length === 0) {
         this.rooms.delete(roomId);
+      } else if (room.players.length === 1 && wasTwoPlayerGame) {
+        room.state = 'RESULTS';
+        room.players[0].score = 1;
+        room.forfeitWin = true;
+        this.io.to(roomId).emit('resultsCalculated');
+        this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
       } else {
-        if (room.host === socketId && activePlayers.length > 0) {
-          room.host = activePlayers[0].id; // Reassign host
+        // 3+ player game: reassign host when host left (random if 2+ remaining)
+        if (room.host === socketId) {
+          if (room.players.length >= 2) {
+            room.host = room.players[Math.floor(Math.random() * room.players.length)].id;
+          } else {
+            room.host = room.players[0].id;
+          }
+          const newHost = room.players.find(p => p.id === room.host);
+          if (newHost) {
+            this.io.to(roomId).emit('hostReassigned', { newHostId: room.host, newHostName: newHost.name });
+          }
         }
         this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
       }
@@ -253,14 +263,8 @@ export class RoomManager {
         css: room.state === 'PLAYING' ? null : p.css
       })),
       endTime: room.endTime,
-      htmlTemplate: (room.state !== 'LOBBY' && room.state !== 'TEMPLATE_VOTING') ? htmlPrompts[room.htmlIndex].html : null,
-      promptName: (room.state !== 'LOBBY' && room.state !== 'TEMPLATE_VOTING') ? htmlPrompts[room.htmlIndex].name : null,
-      templateOptions: room.templateOptions ? room.templateOptions.map(opt => ({
-          index: opt.index,
-          name: opt.name,
-          voteCount: opt.votes.length,
-          votes: opt.votes
-      })) : null
+      htmlTemplate: room.state !== 'LOBBY' ? htmlPrompts[room.htmlIndex] : null,
+      forfeitWin: room.forfeitWin || false
     };
   }
 }
