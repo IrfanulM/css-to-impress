@@ -17,7 +17,11 @@ export class RoomManager {
       state: 'LOBBY',
       players: [player],
       htmlIndex: Math.floor(Math.random() * htmlPrompts.length),
-      endTime: null
+      endTime: null,
+      settings: {
+        gameDuration: 10,
+        disableCopyPaste: false
+      }
     });
     
     this.playerRooms.set(socket.id, roomId);
@@ -124,7 +128,8 @@ export class RoomManager {
     room.htmlIndex = winningIndex;
     room.templateOptions = null; // Clean up
 
-    const GAME_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+    const durationMins = room.settings?.gameDuration || 10;
+    const GAME_DURATION_MS = durationMins * 60 * 1000;
     room.endTime = Date.now() + GAME_DURATION_MS;
 
     const htmlPrompt = htmlPrompts[room.htmlIndex];
@@ -139,6 +144,13 @@ export class RoomManager {
     room.timerTimeout = setTimeout(() => {
       this.finishGameTime(roomId);
     }, GAME_DURATION_MS);
+  }
+
+  updateRoomSettings(roomId, socketId, settings) {
+    const room = this.rooms.get(roomId);
+    if (!room || room.host !== socketId || room.state !== 'LOBBY') return;
+    room.settings = settings;
+    this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
   }
 
   submitCss(socketId, roomId, css) {
@@ -282,6 +294,7 @@ export class RoomManager {
           voteCount: opt.votes.length,
           votes: opt.votes // array of socket IDs who voted for this
       })) : null,
+      settings: room.settings,
       forfeitWin: room.forfeitWin || false
     };
   }

@@ -159,8 +159,31 @@ export function GameRoom({ room }: { room: any }) {
           </div>
 
           <div style={{ flex: 1, position: 'relative' }}>
-            {activeTab === 'css' ? (
-              <Editor
+            <div 
+              style={{ width: '100%', height: '100%' }}
+              onCopyCapture={(e) => {
+                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert('Copying is disabled by the host!');
+                }
+              }}
+              onPasteCapture={(e) => {
+                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert('Pasting is disabled by the host!');
+                }
+              }}
+              onCutCapture={(e) => {
+                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {activeTab === 'css' ? (
+                <Editor
                 key="css-editor"
                 height="100%"
                 language="css"
@@ -196,6 +219,7 @@ export function GameRoom({ room }: { room: any }) {
                 }}
               />
             )}
+            </div>
           </div>
         </div>
 

@@ -80,9 +80,11 @@ button:hover::before {
 }
 
 button:disabled {
-  border-color: #CCCCCC;
-  color: #CCCCCC;
+  background: #f0f0f0 !important;
+  border-color: #ddd !important;
+  color: #aaa !important;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 button:disabled::before {
@@ -211,3 +213,54 @@ input::placeholder {
 .bar-red { background-color: var(--primary); }
 .bar-blue { background-color: var(--secondary); }
 .bar-yellow { background-color: var(--accent); }
+
+/* Custom Tooltip */
+.custom-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-tooltip[data-msg]::after {
+  content: attr(data-msg);
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--text-main);
+  color: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: none;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.custom-tooltip[data-msg]::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--text-main);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.custom-tooltip[data-msg]:hover::after,
+.custom-tooltip[data-msg]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}

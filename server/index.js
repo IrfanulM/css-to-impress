@@ -46,6 +46,10 @@ io.on('connection', (socket) => {
     roomManager.forceEndGame(roomId, socket.id);
   });
 
+  socket.on('updateRoomSettings', ({ roomId, settings }) => {
+    roomManager.updateRoomSettings(roomId, socket.id, settings);
+  });
+
   socket.on('submitTemplateVote', ({ roomId, templateIndex }) => {
     roomManager.submitTemplateVote(socket.id, roomId, templateIndex);
   });
