@@ -56,7 +56,7 @@ export class RoomManager {
     if (!room || room.host !== socketId || room.state !== 'LOBBY') return;
     
     room.state = 'TEMPLATE_VOTING';
-    const VOTING_DURATION_MS = 60 * 1000; // 1 min timer
+    const VOTING_DURATION_MS = 20 * 1000; // 20 sec timer
     room.endTime = Date.now() + VOTING_DURATION_MS;
     
     // Pick 4 unique random templates
