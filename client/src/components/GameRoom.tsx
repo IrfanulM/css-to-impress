@@ -10,6 +10,7 @@ export function GameRoom({ room }: { room: any }) {
   const [htmlTemplate, setHtmlTemplate] = useState('');
   const [activeTab, setActiveTab] = useState<'css' | 'html'>('css');
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const endCountdownPlaying = useRef(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -35,8 +36,17 @@ export function GameRoom({ room }: { room: any }) {
     const interval = setInterval(() => {
       const remaining = Math.max(0, room.endTime - Date.now());
       setTimeLeft(remaining);
-      if (remaining === 0) {
+      if (remaining <= 0) {
+        const audio = new Audio("/sounds/whistle-blow.mp3");
+        audio.volume = 0.8;
+        audio.play();
         clearInterval(interval);
+        endCountdownPlaying.current = false;
+      } else if (remaining <= 17000 && !endCountdownPlaying.current) {
+        const audio = new Audio("/sounds/game-countdown.mp3");
+        audio.volume = 0.8;
+        audio.play();
+        endCountdownPlaying.current = true;
       }
     }, 1000);
 

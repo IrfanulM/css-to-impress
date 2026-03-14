@@ -10,20 +10,29 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
   const [isCopyActive, setIsCopyActive] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const playJoinSound = (): void => {
+    const audio = new Audio("/sounds/player-join.mp3");
+    audio.play();
+  }
+
   const handleCreateRoom = (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerName.trim() || !socket) return;
     socket.emit('createRoom', { playerName });
+    playJoinSound();
   };
 
   const handleJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerName.trim() || !roomIdToJoin.trim() || !socket) return;
     socket.emit('joinRoom', { roomId: roomIdToJoin, playerName });
+    playJoinSound();
   };
 
   const handleStartGame = () => {
     if (!socket || !room) return;
+    const audio = new Audio("/sounds/button1.mp3");
+    audio.play();
     socket.emit('startGame', { roomId: room.id });
   };
 
@@ -41,6 +50,8 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
 
     navigator.clipboard.writeText(code).then(() => {
       setIsCopyActive(true);
+      const audio = new Audio("/sounds/button1.mp3");
+      audio.play();
       setToastMessage(`Game code ${code} has been added to clipboard`);
 
       setTimeout(() => {

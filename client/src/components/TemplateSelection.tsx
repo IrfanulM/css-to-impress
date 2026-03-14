@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { Timer, CheckCircle2 } from 'lucide-react';
 
 export function TemplateSelection({ room }: { room: any }) {
   const { socket } = useSocket();
   const [timeLeft, setTimeLeft] = useState(0);
+  const startSoundPlaying = useRef(false);
 
   useEffect(() => {
     if (!room.endTime) return;
@@ -14,6 +15,12 @@ export function TemplateSelection({ room }: { room: any }) {
       setTimeLeft(remaining);
       if (remaining === 0) {
         clearInterval(interval);
+        startSoundPlaying.current = false;
+      } else if (remaining <= 4000 && !startSoundPlaying.current) {
+        const audio = new Audio("/sounds/game-start1.mp3");
+        audio.volume = 0.5;
+        audio.play();
+        startSoundPlaying.current = true;
       }
     }, 1000);
 
@@ -23,6 +30,9 @@ export function TemplateSelection({ room }: { room: any }) {
   const handleVote = (index: number) => {
     if (socket) {
       socket.emit('submitTemplateVote', { roomId: room.id, templateIndex: index });
+      const audio = new Audio("/sounds/vote2.mp3");
+      audio.volume = 0.5;
+      audio.play();
     }
   };
 

@@ -11,6 +11,8 @@ export function Voting({ room }: { room: any }) {
   const currentPlayerInView = opponents.find((p: any) => p.id === selectedPlayerId) || opponents[0];
 
   const handleVote = (score: number) => {
+    const audio = new Audio("/sounds/star.mp3");
+    audio.play();
     if (!socket || !currentPlayerInView) return;
     socket.emit('submitVote', { roomId: room.id, votedPlayerId: currentPlayerInView.id, score });
     setGivenVotes(prev => ({ ...prev, [currentPlayerInView.id]: score }));

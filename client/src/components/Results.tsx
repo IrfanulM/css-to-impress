@@ -17,6 +17,8 @@ export function Results({ room }: { room: any }) {
   }, [room.id, room.players]);
 
   const playAgain = () => {
+    const audio = new Audio("/sounds/button1.mp3");
+    audio.play();
     window.location.href = '/';
   };
 

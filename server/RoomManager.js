@@ -97,16 +97,6 @@ export class RoomManager {
     }
 
     this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
-
-    // Check if everyone voted
-    let totalVotes = 0;
-    room.templateOptions.forEach(opt => { totalVotes += opt.votes.length; });
-    
-    const activePlayers = room.players.filter(p => this.playerRooms.has(p.id));
-    if (totalVotes >= activePlayers.length) {
-        clearTimeout(room.timerTimeout);
-        this.startActualGame(roomId);
-    }
   }
 
   startActualGame(roomId) {
