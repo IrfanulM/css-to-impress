@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { Star, Check } from 'lucide-react';
+import Avatar from 'boring-avatars';
 
 export function Voting({ room }: { room: any }) {
   const { socket } = useSocket();
@@ -73,7 +74,17 @@ export function Voting({ room }: { room: any }) {
                 borderLeft: currentPlayerInView?.id === p.id ? '4px solid var(--secondary)' : '4px solid transparent'
               }}
             >
-              <span style={{ fontWeight: '600', fontSize: '1.2rem', textTransform: 'capitalize' }}>{p.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '36px', height: '36px', border: 'var(--line-thickness) solid var(--border-color)', borderRadius: '50%', overflow: 'hidden' }}>
+                  <Avatar 
+                    size={36} 
+                    name={p.name} 
+                    variant="beam" 
+                    colors={[['#E03C31', '#005BBB', '#FFD100'][(p.name || '').split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % 3]]} 
+                  />
+                </div>
+                <span style={{ fontWeight: '600', fontSize: '1.2rem', textTransform: 'capitalize' }}>{p.name}</span>
+              </div>
               {givenVotes[p.id] ? (
                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--secondary)', fontWeight: '600', fontSize: '1.1rem' }}>
                    <Check size={18} strokeWidth={3} /> {givenVotes[p.id]}

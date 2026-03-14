@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { Users, Code2, Copy, ArrowRight, Minus, Plus } from 'lucide-react';
+import Avatar from 'boring-avatars';
 
 export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: string }) {
   const { socket } = useSocket();
@@ -101,11 +102,8 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
                 Players ({room.players.length})
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
-                {room.players.map((p: any, i: number) => {
-                  const colors = ['var(--primary)', 'var(--secondary)', 'var(--accent)', 'var(--text-main)'];
-                  const color = colors[i % colors.length];
-                  return (
-                    <div 
+                {room.players.map((p: any) => {
+                  return (                    <div 
                       key={p.id} 
                       style={{ 
                         display: 'flex', 
@@ -117,7 +115,14 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
                         boxShadow: '4px 4px 0px var(--border-color)',
                       }}
                     >
-                      <div style={{ width: '12px', height: '12px', background: color, borderRadius: '50%' }}></div>
+                      <div style={{ width: '40px', height: '40px', border: 'var(--line-thickness) solid var(--border-color)', borderRadius: '50%', overflow: 'hidden' }}>
+                        <Avatar 
+                          size={40} 
+                          name={p.name} 
+                          variant="beam" 
+                          colors={[['#E03C31', '#005BBB', '#FFD100'][(p.name || '').split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % 3]]} 
+                        />
+                      </div>
                       <span style={{ fontWeight: p.id === socket?.id ? '600' : '400', fontSize: '1.1rem' }}>
                         {p.name} {p.id === socket?.id && '(You)'}
                       </span>
@@ -336,14 +341,25 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
 
           {!isJoinMode ? (
             <form onSubmit={handleCreateRoom} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <input 
-                type="text" 
-                placeholder="Your Nickname" 
-                value={playerName} 
-                onChange={(e) => setPlayerName(e.target.value)} 
-                required 
-                maxLength={20}
-              />
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', border: 'var(--line-thickness) solid var(--border-color)', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}>
+                  <Avatar 
+                    size={48} 
+                    name={playerName || 'Guest'} 
+                    variant="beam" 
+                    colors={[['#E03C31', '#005BBB', '#FFD100'][(playerName || 'Guest').split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % 3]]} 
+                  />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Your Nickname" 
+                  value={playerName} 
+                  onChange={(e) => setPlayerName(e.target.value)} 
+                  required 
+                  maxLength={20}
+                  style={{ flex: 1 }}
+                />
+              </div>
               <button type="submit" style={{ width: '100%', marginTop: '16px' }}>Create Room</button>
             </form>
           ) : (
@@ -357,14 +373,25 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
                 maxLength={6}
                 style={{ textTransform: 'uppercase', letterSpacing: '2px' }}
               />
-              <input 
-                type="text" 
-                placeholder="Your Nickname" 
-                value={playerName} 
-                onChange={(e) => setPlayerName(e.target.value)} 
-                required 
-                maxLength={20}
-              />
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', border: 'var(--line-thickness) solid var(--border-color)', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white' }}>
+                  <Avatar 
+                    size={48} 
+                    name={playerName || 'Guest'} 
+                    variant="beam" 
+                    colors={[['#E03C31', '#005BBB', '#FFD100'][(playerName || 'Guest').split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % 3]]} 
+                  />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Your Nickname" 
+                  value={playerName} 
+                  onChange={(e) => setPlayerName(e.target.value)} 
+                  required 
+                  maxLength={20}
+                  style={{ flex: 1 }}
+                />
+              </div>
               <button type="submit" style={{ width: '100%', marginTop: '16px' }}>
                 Join Room
               </button>
