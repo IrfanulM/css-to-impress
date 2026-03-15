@@ -1,9 +1,12 @@
 # Code to Impress
-A multiplayer game where developers compete to style the same HTML structure using vanilla CSS.
+A multiplayer game where developers compete to style the same HTML structure using CSS.
 
-## Tech Stack
+## Technologies Used
 * Frontend: React, Vite, TypeScript, Socket.io-client, Monaco Editor
 * Backend: Node.js, Express, Socket.io
+* Libraries: Monaco Editor, Lucide React, Boring Avatars, React Router, Cors
+* Developmental Assistance: Claude Code, Cursor
+* Sounds: Pixabay
 
 ## Getting Started
 
