@@ -32,7 +32,7 @@ export const htmlPrompts = [
 </form>`
   },
   {
-    name: "Full Blog Post",
+    name: "Blog Post",
     html: `<article class="blog-post">
   <header class="post-header">
     <div class="category">Technology & Design</div>
