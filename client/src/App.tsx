@@ -82,6 +82,13 @@ function GameController() {
     };
   }, [socket, isConnected, navigate, roomId]);
 
+  // If we navigate to home, clear any existing room state
+  useEffect(() => {
+    if (!roomId && room) {
+      setRoom(null);
+    }
+  }, [roomId, room]);
+
   // Drive countdown for the disconnect overlay
   useEffect(() => {
     if (!disconnectedInfo) return;
