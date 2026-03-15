@@ -308,7 +308,7 @@ export function Lobby({ room, defaultRoomId }: { room?: any, defaultRoomId?: str
           <div style={{ marginBottom: '40px' }}>
             <Code2 size={32} color="var(--primary)" style={{ marginBottom: '16px' }} />
             <div style={{ position: 'relative' }}>
-              <h1 className="title-linear">Code <span style={{ fontWeight: 400 }}>To</span><br/>Impress</h1>
+              <h1 className="title-linear">CSS <span style={{ fontWeight: 400 }}>To</span><br/>Impress</h1>
             </div>
             <p className="subtitle" style={{ marginTop: '16px' }}>Dress To Impress, but for developers.</p>
           </div>

@@ -133,7 +133,7 @@ export function GameRoom({ room }: { room: any }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-          <h2 style={{ margin: 0, padding: 0, fontSize: '1.5rem' }} className="title-small">Code to Impress</h2>
+          <h2 style={{ margin: 0, padding: 0, fontSize: '1.5rem' }} className="title-small">CSS to Impress</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Room {room.id}</span>
             <span style={{ width: '4px', height: '4px', background: 'var(--border-color)', borderRadius: '50%' }}></span>

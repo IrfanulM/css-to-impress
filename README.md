@@ -1,4 +1,4 @@
-# Code to Impress
+# CSS to Impress
 A multiplayer game where developers compete to style the same HTML structure using CSS.
 
 ## Technologies Used
