@@ -76,10 +76,29 @@ export function GameRoom({ room }: { room: any }) {
           <html>
             <head>
               <style>
-                body { margin: 0; padding: 24px; font-family: system-ui, sans-serif; background: #FFFFFF; color: #000000; }
+                body { 
+                  margin: 0; 
+                  padding: 24px; 
+                  font-family: system-ui, sans-serif; 
+                  background: #FFFFFF; 
+                  color: #000000; 
+                  ${room.settings?.disableCopyPaste ? 'user-select: none; -webkit-user-select: none;' : ''}
+                }
                 * { box-sizing: border-box; }
                 ${css}
               </style>
+              <script>
+                if (${!!room.settings?.disableCopyPaste}) {
+                  ['copy', 'paste', 'cut'].forEach(event => {
+                    document.addEventListener(event, (e) => {
+                      e.preventDefault();
+                      if (event !== 'cut') {
+                        alert(event.charAt(0).toUpperCase() + event.slice(1) + 'ing is disabled by the host!');
+                      }
+                    });
+                  });
+                }
+              </script>
             </head>
             <body>
               ${htmlTemplate || `
@@ -94,7 +113,7 @@ export function GameRoom({ room }: { room: any }) {
         doc.close();
       }
     }
-  }, [css, htmlTemplate]);
+  }, [css, htmlTemplate, room]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -203,21 +222,21 @@ export function GameRoom({ room }: { room: any }) {
             <div 
               style={{ width: '100%', height: '100%' }}
               onCopyCapture={(e) => {
-                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                if (room.settings?.disableCopyPaste) {
                   e.preventDefault();
                   e.stopPropagation();
                   alert('Copying is disabled by the host!');
                 }
               }}
               onPasteCapture={(e) => {
-                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                if (room.settings?.disableCopyPaste) {
                   e.preventDefault();
                   e.stopPropagation();
                   alert('Pasting is disabled by the host!');
                 }
               }}
               onCutCapture={(e) => {
-                if (room.settings?.disableCopyPaste && activeTab === 'css') {
+                if (room.settings?.disableCopyPaste) {
                   e.preventDefault();
                   e.stopPropagation();
                 }
