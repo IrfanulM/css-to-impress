@@ -22,11 +22,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsConnected(true);
       console.log('Connected to socket server');
 
-      // Attempt to reconnect into an in-progress game if we have prior identity
+      // Only try to reconnect when user is actually on a room URL (e.g. refreshed on /room/XYZ).
+      // Prevents "Room not found or reconnect window expired" / "game is not in a reconnectable state"
+      // when opening a new tab at "/" or when reloading with stale localStorage.
       try {
+        const pathMatch = typeof window !== 'undefined' && window.location.pathname.match(/^\/room\/([^/]+)$/);
+        const currentRoomId = pathMatch ? pathMatch[1] : null;
         const storedRoomId = localStorage.getItem('cti_lastRoomId');
         const storedPlayerId = localStorage.getItem('cti_lastPlayerId');
-        if (storedRoomId && storedPlayerId) {
+        if (currentRoomId && storedRoomId === currentRoomId && storedPlayerId) {
           newSocket.emit('reconnectRoom', {
             roomId: storedRoomId,
             previousId: storedPlayerId,

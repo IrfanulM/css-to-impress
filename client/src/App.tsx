@@ -58,6 +58,18 @@ function GameController() {
       if (msg.includes('already in this room')) {
         setNameTakenToast(true);
         setTimeout(() => setNameTakenToast(false), 3000);
+      } else if (
+        msg.includes('Room not found') ||
+        msg.includes('reconnect window expired') ||
+        msg.includes('Unable to reconnect') ||
+        msg.includes('reconnectable state')
+      ) {
+        try {
+          localStorage.removeItem('cti_lastRoomId');
+          localStorage.removeItem('cti_lastPlayerId');
+        } catch { /* ignore */ }
+        setRoom(null);
+        navigate('/');
       } else {
         alert(msg);
       }
@@ -66,8 +78,12 @@ function GameController() {
     socket.on('playerTemporarilyDisconnected', handlePlayerTemporarilyDisconnected);
     socket.on('playerReconnected', handlePlayerReconnected);
 
-    // Auto-navigate to home if lobby destroyed while inside
+    // Auto-navigate to home if lobby destroyed; clear stored room so new tab/reload doesn't try to reconnect
     socket.on('disconnect', () => {
+        try {
+          localStorage.removeItem('cti_lastRoomId');
+          localStorage.removeItem('cti_lastPlayerId');
+        } catch { /* ignore */ }
         navigate('/');
         setRoom(null);
     });

@@ -224,6 +224,10 @@ export function Voting({ room }: { room: any }) {
               <button
                 type="button"
                 onClick={() => {
+                  try {
+                    localStorage.removeItem('cti_lastRoomId');
+                    localStorage.removeItem('cti_lastPlayerId');
+                  } catch { /* ignore */ }
                   socket?.emit('leaveRoom');
                   navigate('/');
                 }}
