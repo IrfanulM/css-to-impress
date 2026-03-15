@@ -11,7 +11,8 @@ export class RoomManager {
 
   createRoom(socket, playerName) {
     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const player = { id: socket.id, name: playerName, css: '', ready: false, score: 0, votesReceived: [] };
+    const name = String(playerName).trim();
+    const player = { id: socket.id, name, css: '', ready: false, score: 0, votesReceived: [] };
     
     this.rooms.set(roomId, {
       id: roomId,
@@ -44,7 +45,16 @@ export class RoomManager {
       return;
     }
 
-    const player = { id: socket.id, name: playerName, css: '', ready: false, score: 0, votesReceived: [] };
+    const name = String(playerName).trim();
+    const isDuplicate = room.players.some(
+      (p) => (p.name || '').trim().toLowerCase() === name.toLowerCase()
+    );
+    if (isDuplicate) {
+      socket.emit('errorMsg', 'A player with that name is already in this room');
+      return;
+    }
+
+    const player = { id: socket.id, name, css: '', ready: false, score: 0, votesReceived: [] };
     room.players.push(player);
     this.playerRooms.set(socket.id, roomId);
     socket.join(roomId);

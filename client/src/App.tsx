@@ -13,6 +13,7 @@ function GameController() {
   const { socket, isConnected } = useSocket();
   const [room, setRoom] = useState<any>(null);
   const [hostReassignToast, setHostReassignToast] = useState<string | null>(null);
+  const [nameTakenToast, setNameTakenToast] = useState(false);
   const [disconnectedInfo, setDisconnectedInfo] = useState<{ playerName: string; expiresAt: number } | null>(null);
   const [disconnectTimeLeft, setDisconnectTimeLeft] = useState<number>(0);
   const navigate = useNavigate();
@@ -53,7 +54,14 @@ function GameController() {
     };
 
     socket.on('roomUpdated', handleRoomUpdated);
-    socket.on('errorMsg', (msg: string) => alert(msg));
+    socket.on('errorMsg', (msg: string) => {
+      if (msg.includes('already in this room')) {
+        setNameTakenToast(true);
+        setTimeout(() => setNameTakenToast(false), 3000);
+      } else {
+        alert(msg);
+      }
+    });
     socket.on('hostReassigned', handleHostReassigned);
     socket.on('playerTemporarilyDisconnected', handlePlayerTemporarilyDisconnected);
     socket.on('playerReconnected', handlePlayerReconnected);
@@ -216,6 +224,27 @@ function GameController() {
           }}
         >
           {hostReassignToast}
+        </div>
+      )}
+      {nameTakenToast && (
+        <div
+          className="title-small"
+          style={{
+            position: 'fixed',
+            top: '32px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '16px 28px',
+            background: '#000',
+            color: '#fff',
+            border: 'none',
+            boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
+            borderRadius: '999px',
+            fontSize: '1.2rem',
+            zIndex: 1000,
+          }}
+        >
+          Name already taken
         </div>
       )}
     </>
