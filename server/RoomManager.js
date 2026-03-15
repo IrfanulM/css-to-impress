@@ -32,7 +32,9 @@ export class RoomManager {
     socket.join(roomId);
     
     socket.emit('roomCreated', { roomId, player });
-    this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(this.rooms.get(roomId)));
+    const sanitized = this._sanitizeRoom(this.rooms.get(roomId));
+    socket.emit('roomUpdated', sanitized);
+    this.io.to(roomId).emit('roomUpdated', sanitized);
   }
 
   joinRoom(socket, roomId, playerName) {
@@ -61,7 +63,9 @@ export class RoomManager {
     socket.join(roomId);
 
     socket.emit('roomJoined', { roomId, player });
-    this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
+    const sanitized = this._sanitizeRoom(room);
+    socket.emit('roomUpdated', sanitized);
+    this.io.to(roomId).emit('roomUpdated', sanitized);
   }
 
   reconnectRoom(socket, roomId, previousId) {

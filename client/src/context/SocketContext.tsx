@@ -1,7 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const getSocketUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+  
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location;
+    // If we're developing locally, use localhost:3001
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3001';
+    }
+  }
+  
+  // Production fallback
+  return 'https://code-to-impress-server.onrender.com';
+};
+
+const SOCKET_URL = getSocketUrl();
 
 interface SocketContextProps {
   socket: Socket | null;

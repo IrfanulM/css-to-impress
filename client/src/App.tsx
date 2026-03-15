@@ -101,12 +101,14 @@ function GameController() {
     };
   }, [socket, isConnected, navigate, roomId]);
 
-  // If we navigate to home, clear any existing room state
+  // Clear room state ONLY if we are truly on the home path.
+  // This prevents a race condition where the state is wiped during the split-second 
+  // transition between creating a room and navigating to its URL.
   useEffect(() => {
-    if (!roomId && room) {
-      setRoom(null);
+    if (window.location.pathname === '/' && room) {
+       setRoom(null);
     }
-  }, [roomId]); // Remove 'room' from dependencies so it doesn't trigger during creation/join flow
+  }, [roomId, room]); // roomId change triggers the check; room is included to ensure cleanup happens if room data arrives while still on /
 
   // Drive countdown for the disconnect overlay
   useEffect(() => {
