@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { Star, Check } from 'lucide-react';
+import { Star, Check, LogOut } from 'lucide-react';
 import Avatar from 'boring-avatars';
 
 export function Voting({ room }: { room: any }) {
   const { socket } = useSocket();
+  const navigate = useNavigate();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [givenVotes, setGivenVotes] = useState<Record<string, number>>({});
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const opponents = room.players.filter((p: any) => p.id !== socket?.id);
   const currentPlayerInView = opponents.find((p: any) => p.id === selectedPlayerId) || opponents[0];
@@ -46,8 +49,24 @@ export function Voting({ room }: { room: any }) {
             <span style={{ fontSize: '0.9rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text-main)' }}>Rating Phase</span>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <p style={{ margin: 0, fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', letterSpacing: '0.5px' }}>RATE THE DESIGNS</p>
+          <button
+            type="button"
+            onClick={() => setShowLeaveModal(true)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.8rem',
+              border: '1px solid var(--text-muted)',
+              color: 'var(--text-muted)',
+              background: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <LogOut size={14} /> Leave game
+          </button>
         </div>
       </div>
     </header>
@@ -167,6 +186,55 @@ export function Voting({ room }: { room: any }) {
         <div className="bar-yellow"></div>
         <div className="bar-red"></div>
       </div>
+
+      {showLeaveModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowLeaveModal(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              padding: '32px 40px',
+              maxWidth: '420px',
+              border: 'var(--line-thickness) solid var(--border-color)',
+              boxShadow: '0 20px 48px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ margin: '0 0 24px', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.4 }}>
+              Are you sure you wish to leave? The game will proceed.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowLeaveModal(false)}
+                style={{ padding: '10px 20px', border: '1px solid var(--border-color)', background: 'transparent', fontWeight: 600 }}
+              >
+                Stay
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  socket?.emit('leaveRoom');
+                  navigate('/');
+                }}
+                style={{ padding: '10px 20px', background: 'var(--text-main)', color: 'white', border: 'none', fontWeight: 600 }}
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

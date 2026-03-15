@@ -6,10 +6,20 @@ import { RoomManager } from './RoomManager.js';
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 // Health check for Uptime Robot
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
+});
+
+// Tab-close / refresh: client sends beacon — remove player immediately so the 60s timer never starts
+app.post('/api/leave-room', (req, res) => {
+  const { socketId } = req.body || {};
+  if (socketId) {
+    roomManager.processExplicitLeaveByBeacon(socketId);
+  }
+  res.status(204).end();
 });
 
 const server = createServer(app);

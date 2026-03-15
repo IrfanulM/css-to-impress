@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { SocketProvider, useSocket } from './context/SocketContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Lobby } from './components/Lobby';
 import { GameRoom } from './components/GameRoom';
 import { TemplateSelection } from './components/TemplateSelection';
@@ -86,6 +86,43 @@ function GameController() {
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [disconnectedInfo]);
+
+  // Tab/refresh close: show "Are you sure?" and if they leave, remove immediately so the 60s timer never starts
+  const isActiveGame = room?.state === 'PLAYING' || room?.state === 'VOTING';
+  const socketRef = useRef(socket);
+  socketRef.current = socket;
+  useEffect(() => {
+    if (!isActiveGame) return;
+
+    const apiBase = import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : 'http://localhost:3001');
+    const leaveUrl = `${apiBase.replace(/\/$/, '')}/api/leave-room`;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    const handleUnload = () => {
+      try {
+        socketRef.current?.emit('leaveRoom');
+        const playerId = localStorage.getItem('cti_lastPlayerId');
+        if (playerId) {
+          const payload = JSON.stringify({ socketId: playerId });
+          navigator.sendBeacon(leaveUrl, new Blob([payload], { type: 'application/json' }));
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [isActiveGame]);
 
   let content: React.ReactNode;
   if (!room) {

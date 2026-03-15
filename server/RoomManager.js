@@ -6,6 +6,7 @@ export class RoomManager {
     this.rooms = new Map(); // roomId -> { id, host, state, players: [ { id, name, css, ready, score, votesReceived: [] } ], htmlIndex, endTime }
     this.playerRooms = new Map(); // socketId -> roomId
     this.disconnectTimers = new Map(); // socketId -> timeoutId for grace-period disconnects
+    this.explicitLeaves = new Set(); // socketIds that chose "Leave" (button or tab close) so we skip grace period
   }
 
   createRoom(socket, playerName) {
@@ -261,6 +262,14 @@ export class RoomManager {
       return;
     }
 
+    // Explicit leave (Leave button or tab close with confirm): remove immediately, no grace period
+    if (this.explicitLeaves.has(socketId)) {
+      this.explicitLeaves.delete(socketId);
+      this.playerRooms.delete(socketId);
+      this._removePlayerFromRoom(roomId, room, socketId);
+      return;
+    }
+
     const isActiveGame = room.state === 'PLAYING' || room.state === 'VOTING';
 
     // For active games (PLAYING/VOTING), start a 60s grace period instead of
@@ -381,11 +390,62 @@ export class RoomManager {
   }
 
   leaveRoom(socket) {
+    this.explicitLeaves.add(socket.id);
     const roomId = this.playerRooms.get(socket.id);
     if (roomId) {
       socket.leave(roomId);
     }
     this.handleDisconnect(socket.id);
+  }
+
+  /** Mark a socket as having left explicitly (e.g. tab-close beacon). Next disconnect will skip grace. */
+  markExplicitLeave(socketId) {
+    this.explicitLeaves.add(socketId);
+  }
+
+  /**
+   * Called when we receive the tab-close beacon: remove the player immediately so the
+   * 60s timer never starts for others. When the socket actually disconnects later,
+   * handleDisconnect will no-op (player already removed from playerRooms).
+   */
+  processExplicitLeaveByBeacon(socketId) {
+    const roomId = this.playerRooms.get(socketId);
+    if (!roomId) return;
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      this.playerRooms.delete(socketId);
+      return;
+    }
+    this.playerRooms.delete(socketId);
+    this._removePlayerFromRoom(roomId, room, socketId);
+  }
+
+  /** Remove one player from a room and apply forfeit / host reassignment / room delete. */
+  _removePlayerFromRoom(roomId, room, socketId) {
+    if (room.state !== 'RESULTS') {
+      room.players = room.players.filter(p => p.id !== socketId);
+    }
+    const activePlayers = room.players.filter(p => this.playerRooms.has(p.id));
+    if (activePlayers.length === 0) {
+      this.rooms.delete(roomId);
+      return;
+    }
+    if (room.players.length === 1) {
+      room.state = 'RESULTS';
+      room.players[0].score = 1;
+      room.forfeitWin = true;
+      this.io.to(roomId).emit('resultsCalculated');
+      this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
+    } else {
+      if (room.host === socketId && activePlayers.length > 0) {
+        room.host = activePlayers[0].id;
+        const newHost = room.players.find(p => p.id === room.host);
+        if (newHost) {
+          this.io.to(roomId).emit('hostReassigned', { newHostId: room.host, newHostName: newHost.name });
+        }
+      }
+      this.io.to(roomId).emit('roomUpdated', this._sanitizeRoom(room));
+    }
   }
 
   _sanitizeRoom(room) {
